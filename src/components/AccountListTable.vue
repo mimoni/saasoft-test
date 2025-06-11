@@ -90,15 +90,22 @@ const rows = computed({
 function validateRow(data: AccountRow) {
   const errors: Record<string, string> = {}
 
-  if (!data.login.trim()) {
-    errors.login = ''
+  if (!data.login || !data.login.trim()) {
+    errors.login = 'Логин обязателен для заполнения'
+  } else if (data.login.length > 100) {
+    errors.login = 'Логин не должен превышать 100 символов'
   }
 
-  if (data.type === 'local' && !data.password) {
-    errors.password = ''
+  if (data.type === 'local') {
+    if (!data.password || !data.password.trim()) {
+      errors.password = 'Пароль обязателен для заполнения'
+    } else if (data.password.length > 100) {
+      errors.password = 'Пароль не должен превышать 100 символов'
+    }
   }
 
   data.errors = errors
+  emit('update:rows', rows.value)
   return Object.keys(errors).length === 0
 }
 
@@ -106,21 +113,20 @@ function validateLabels(data: AccountRow) {
   if (data.labels.length > 50) {
     data.labels = data.labels.slice(0, 50)
   }
-  emit('update:rows', rows.value)
 }
 
 function validateLogin(data: AccountRow) {
   if (data.login.length > 100) {
     data.login = data.login.slice(0, 100)
   }
-  emit('update:rows', rows.value)
+  validateRow(data)
 }
 
 function validatePassword(data: AccountRow) {
   if (data.password && data.password.length > 100) {
     data.password = data.password.slice(0, 100)
   }
-  emit('update:rows', rows.value)
+  validateRow(data)
 }
 
 function handleTypeChange(data: AccountRow) {
@@ -138,24 +144,34 @@ function handleTypeChange(data: AccountRow) {
 .account-table {
   margin-top: 0.5rem;
 }
+
 .type-dropdown {
   width: 100%;
 }
+
 :deep(.p-inputtext) {
   width: 100%;
 }
+
 :deep(.p-password) {
   width: 100%;
 }
+
 :deep(.p-password-input) {
   width: 100%;
 }
-:deep(.p-invalid) {
+
+:deep(.p-invalid),
+:deep(.p-invalid input),
+:deep(.p-invalid .p-inputtext::placeholder){
   border-color: var(--red-500) !important;
+  color: var(--red-500) !important;
 }
+
 :deep(.delete-button) {
   color: var(--red-500) !important;
 }
+
 :deep(.delete-button:hover) {
   background: var(--red-100) !important;
 }
